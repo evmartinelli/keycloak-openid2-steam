@@ -29,7 +29,10 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-    - name: Publish to GitHub Packages Apache Maven
-      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+    - name: Upload binaries
+      uses: 'actions/upload-artifact@v2'
+      with:
+        name: Download-binaries
+        path: |
+          keycloak-openid2-steam.jar
+        if-no-files-found: error
