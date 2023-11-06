@@ -52,7 +52,7 @@
 
     <build>
         <finalName>${project.artifactId}</finalName>
-        <directory>${project.basedir}/keycloak/providers</directory>
+        <directory>${project.basedir}</directory>
     </build>
 
 </project>
