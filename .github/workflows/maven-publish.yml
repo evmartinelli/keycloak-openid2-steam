@@ -33,6 +33,5 @@ jobs:
       uses: 'actions/upload-artifact@v2'
       with:
         name: Download-binaries
-        path: |
-          keycloak-openid2-steam.jar
+        path: keycloak-openid2-steam.jar
         if-no-files-found: error
