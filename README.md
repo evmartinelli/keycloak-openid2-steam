@@ -10,6 +10,11 @@ IdentityProvider implementations in general.
 mvn package
 ```
 
+
+```
+you can use Github Actions to deploy .jar
+```
+
 ## .env
 
 ```
