@@ -10,6 +10,7 @@ import org.keycloak.common.ClientConnection;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.models.*;
 import org.keycloak.services.messages.Messages;
+import org.keycloak.sessions.AuthenticationSessionModel;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.QueryParam;
@@ -32,7 +33,7 @@ public class SteamIdentityProvider extends AbstractIdentityProvider<SteamIdentit
 
     @Override
     public Object callback(RealmModel realm, AuthenticationCallback callback, EventBuilder event) {
-        return new Endpoint(callback, realm, event);
+        return new Endpoint(callback, realm, event, session);
     }
 
     @Override
@@ -43,7 +44,7 @@ public class SteamIdentityProvider extends AbstractIdentityProvider<SteamIdentit
                 .queryParam("openid.assoc_handle", request.getState().getEncoded())
                 .queryParam("openid.mode", "checkid_setup")
                 .queryParam("openid.return_to", request.getRedirectUri() + "?state=" + request.getState().getEncoded())
-                .queryParam("openid.realm", "https://localhost")
+                .queryParam("openid.realm", request.getRedirectUri())
                 .queryParam("openid.identity", "http://specs.openid.net/auth/2.0/identifier_select")
                 .queryParam("openid.claimed_id", "http://specs.openid.net/auth/2.0/identifier_select")
                 .build();
@@ -59,8 +60,6 @@ public class SteamIdentityProvider extends AbstractIdentityProvider<SteamIdentit
         protected AuthenticationCallback callback;
         protected RealmModel realm;
         protected EventBuilder event;
-
-        @Context
         protected KeycloakSession session;
 
         @Context
@@ -69,10 +68,11 @@ public class SteamIdentityProvider extends AbstractIdentityProvider<SteamIdentit
         @Context
         protected HttpHeaders headers;
 
-        public Endpoint(AuthenticationCallback callback, RealmModel realm, EventBuilder event) {
+        public Endpoint(AuthenticationCallback callback, RealmModel realm, EventBuilder event, KeycloakSession session) {
             this.callback = callback;
             this.realm = realm;
             this.event = event;
+            this.session = session;
         }
 
         @GET
@@ -88,6 +88,9 @@ public class SteamIdentityProvider extends AbstractIdentityProvider<SteamIdentit
                                      @QueryParam("openid.response_nonce") String responseNonce,
                                      @QueryParam("openid.invalidate_handle") String invalidateHandle) {
             String namespace = "http://specs.openid.net/auth/2.0";
+                                
+            AuthenticationSessionModel authSession = callback.getAndVerifyAuthenticationSession(state);
+            session.getContext().setAuthenticationSession(authSession);
 
             SimpleHttp request = SimpleHttp.doPost("https://steamcommunity.com/openid/login", session)
                     .header("Accept-language", "en")
@@ -128,7 +131,7 @@ public class SteamIdentityProvider extends AbstractIdentityProvider<SteamIdentit
             federatedIdentity.setIdpConfig(getConfig());
             federatedIdentity.setBrokerUserId(steamId);
             federatedIdentity.setUsername(steamId);
-
+            federatedIdentity.setAuthenticationSession(authSession);
             federatedIdentity.setUserAttribute("steamId", steamId);
 
             try {

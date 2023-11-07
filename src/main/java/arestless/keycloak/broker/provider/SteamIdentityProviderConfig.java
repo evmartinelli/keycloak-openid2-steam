@@ -4,6 +4,8 @@ import org.keycloak.models.IdentityProviderModel;
 
 public class SteamIdentityProviderConfig extends IdentityProviderModel {
 
+    private static final String STEAM_API_KEY = System.getenv("STEAM_API_KEY");
+
     public SteamIdentityProviderConfig(IdentityProviderModel model) {
         super(model);
     }
@@ -12,10 +14,6 @@ public class SteamIdentityProviderConfig extends IdentityProviderModel {
     }
 
     public String getSteamApiKey() {
-        return getConfig().get("steamApiKey");
-    }
-
-    public void setSteamApiKey(String key) {
-        getConfig().put("steamApiKey", key);
+        return STEAM_API_KEY;
     }
 }
