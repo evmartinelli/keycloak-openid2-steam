@@ -33,6 +33,11 @@ public class SteamIdentityProviderFactory implements SocialIdentityProviderFacto
     }
 
     @Override
+    public SteamIdentityProviderConfig createConfig() {
+        return new SteamIdentityProviderConfig();
+    }
+
+    @Override
     public void init(Config.Scope scope) {
     }
 
@@ -47,9 +52,5 @@ public class SteamIdentityProviderFactory implements SocialIdentityProviderFacto
     @Override
     public String getId() {
         return "steam";
-    }
-    
-    @Override
-    public void createConfig() {
     }
 }

@@ -1,7 +1,9 @@
 package arestless.keycloak.broker.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.keycloak.broker.provider.*;
+import org.keycloak.broker.provider.AbstractIdentityProvider;
+import org.keycloak.broker.provider.AuthenticationRequest;
+import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.util.SimpleHttp;
 import org.keycloak.broker.social.SocialIdentityProvider;
 import org.keycloak.common.ClientConnection;
@@ -9,9 +11,9 @@ import org.keycloak.events.EventBuilder;
 import org.keycloak.models.*;
 import org.keycloak.services.messages.Messages;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.*;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.*;
 import java.io.IOException;
 import java.net.URI;
 import java.util.regex.Matcher;
@@ -28,10 +30,12 @@ public class SteamIdentityProvider extends AbstractIdentityProvider<SteamIdentit
         return null;
     }
 
+    @Override
     public Object callback(RealmModel realm, AuthenticationCallback callback, EventBuilder event) {
         return new Endpoint(callback, realm, event);
     }
 
+    @Override
     public Response performLogin(AuthenticationRequest request) {
         URI uri = UriBuilder.fromUri("https://steamcommunity.com/openid/login")
                 .scheme("https")
@@ -39,7 +43,7 @@ public class SteamIdentityProvider extends AbstractIdentityProvider<SteamIdentit
                 .queryParam("openid.assoc_handle", request.getState().getEncoded())
                 .queryParam("openid.mode", "checkid_setup")
                 .queryParam("openid.return_to", request.getRedirectUri() + "?state=" + request.getState().getEncoded())
-                .queryParam("openid.realm", "https://auth.atlasmapviewer.com")
+                .queryParam("openid.realm", "https://localhost")
                 .queryParam("openid.identity", "http://specs.openid.net/auth/2.0/identifier_select")
                 .queryParam("openid.claimed_id", "http://specs.openid.net/auth/2.0/identifier_select")
                 .build();
@@ -103,11 +107,11 @@ public class SteamIdentityProvider extends AbstractIdentityProvider<SteamIdentit
             try {
                 String response = request.asString();
                 if (!Pattern.compile(".*is_valid\\s*:\\s*true.*", Pattern.DOTALL).matcher(response).matches()) {
-                    return callback.error("could not verify authentication with Steam", Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
+                    return callback.error(Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                return callback.error(e.getMessage(), Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
+                return callback.error(Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
             }
 
             Pattern p = Pattern.compile("https?://steamcommunity.com/openid/id/([0-9]{17,25})");
@@ -116,7 +120,7 @@ public class SteamIdentityProvider extends AbstractIdentityProvider<SteamIdentit
             if (matcher.matches()) {
                 steamId = matcher.group(1);
             } else {
-                return callback.error("could not determine SteamID", Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
+                return callback.error(Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
             }
 
             BrokeredIdentityContext federatedIdentity = new BrokeredIdentityContext(claimedId);
@@ -124,7 +128,6 @@ public class SteamIdentityProvider extends AbstractIdentityProvider<SteamIdentit
             federatedIdentity.setIdpConfig(getConfig());
             federatedIdentity.setBrokerUserId(steamId);
             federatedIdentity.setUsername(steamId);
-            federatedIdentity.setCode(state);
 
             federatedIdentity.setUserAttribute("steamId", steamId);
 

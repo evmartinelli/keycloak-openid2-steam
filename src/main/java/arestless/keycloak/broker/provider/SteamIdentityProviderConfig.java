@@ -8,6 +8,9 @@ public class SteamIdentityProviderConfig extends IdentityProviderModel {
         super(model);
     }
 
+    public SteamIdentityProviderConfig() {
+    }
+
     public String getSteamApiKey() {
         return getConfig().get("steamApiKey");
     }
