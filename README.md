@@ -1,4 +1,4 @@
-# keycloak-openid2-steam UPDATE to KeyCloak 22
+# keycloak-openid2-steam UPDATED to KeyCloak 22
 
 A minimal Keycloak IdentityProvider implementation of OpenID2 for Steam. This implementation may
 also serve as a basis for a full-fledged OpenID2 implementation for Keycloak and as example for
